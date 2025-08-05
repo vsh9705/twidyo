@@ -1,0 +1,11 @@
+{
+  "name": "twidyo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vasu Sharma",
+  "license": "ISC",
+  "description": ""
+}
