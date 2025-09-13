@@ -5,6 +5,22 @@ import { User } from '../models/user.model.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
+const generateAccessAndRefreshTokens = async (userId) => {
+    try{
+        const user = await User.findById(userId);
+        const refreshToken = user.generateRefreshToken();
+        const accessToken = user.generateAccessToken();
+
+        user.refreshToken = refreshToken;
+        await user.save({validateBeforeSave: false});
+
+        return {accessToken, refreshToken}
+
+    } catch (error) {
+        throw new ApiError(500, 'Something went wrong')
+    }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
     const { username, email, fullName, password } = req.body;
 
@@ -28,7 +44,7 @@ const registerUser = asyncHandler(async (req, res) => {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
 
-    
+
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar is required");
     }
@@ -62,4 +78,34 @@ const registerUser = asyncHandler(async (req, res) => {
     )
 })
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+    // req body -> data
+    // username or email
+    // find the user
+    // password check
+    // access and refresh token
+    // send cookies
+    const {email, username, password} = req.body;
+
+    if(!username && !email){
+        throw new ApiError(400, "username or email is required");
+    }
+
+    const user = await User.findOne({
+        $or: [{username}, {email}]
+    })
+
+    if(!user) {
+        throw new ApiError(404, "user doesn't exist");
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if(!isPasswordValid) {
+        throw new ApiError(401, "invalid credentials")
+    }
+
+
+})
+
+export { registerUser, loginUser };
